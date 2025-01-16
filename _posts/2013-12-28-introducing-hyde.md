@@ -1,11 +1,9 @@
 ---
-layout: post
-title: Introducing Hyde
+layout: page
+title: Carlos Iguaran
 ---
 
-# Carlos Iguaran
-
-Computer scientist (MSc, UBA - University of Buenos Aires, 2017). 8+ years experience in the tech industry working on production-level software. 
+Computer scientist (MSc, UBA - University of Buenos Aires, 2017).
 
 In recent years I've specialized in computational aspects of bayesian inference. I am a BlackJax contributor. To learn more check [My PRs and issues list](https://github.com/users/ciguaran/projects/1) and the [BlackJax Paper](https://arxiv.org/abs/2402.10797).
 
