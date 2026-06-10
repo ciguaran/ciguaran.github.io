@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackJAX Contributions — Carlos Iguaran</title>
+  <meta name="description" content="Carlos Iguaran's contributions to the BlackJAX Bayesian inference library — SMC subsystem, algorithm design, adaptive infrastructure.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4ef;
+      --fg: #1a1a18;
+      --fg-muted: #6b6b65;
+      --fg-faint: #a8a89f;
+      --accent: #2a4d8f;
+      --accent-light: #e8eef8;
+      --border: #d4d3cb;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { font-size: 15px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--mono);
+      font-weight: 300;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    .site {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 0 24px;
+      animation: fadein 0.4s ease both;
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 52px;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      margin-bottom: 28px;
+    }
+
+    .back:hover { color: var(--accent); text-decoration: none; }
+    .back::before { content: '←'; font-size: 0.9rem; }
+
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    .page-sub {
+      font-size: 0.82rem;
+      color: var(--fg-muted);
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    section { margin-bottom: 52px; }
+
+    /* ── Prose ── */
+    .prose {
+      font-family: var(--sans);
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--fg);
+    }
+    .prose p + p { margin-top: 0.9em; }
+    .prose strong { font-weight: 400; }
+    .prose em { font-style: italic; color: var(--fg-muted); }
+
+    /* ── Summary table ── */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .summary-table th {
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      padding: 8px 12px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-table td {
+      padding: 10px 12px 10px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--fg-muted);
+      line-height: 1.5;
+      vertical-align: top;
+    }
+    .summary-table td:first-child {
+      color: var(--fg);
+      font-weight: 400;
+      white-space: nowrap;
+      padding-right: 24px;
+    }
+
+    /* ── Release groups ── */
+    .release-group { margin-bottom: 44px; }
+
+    .release-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .release-version {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--fg);
+    }
+
+    .release-year {
+      font-size: 0.75rem;
+      color: var(--fg-faint);
+    }
+
+    /* ── PR cards ── */
+    .pr-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+
+    .pr-card {
+      background: var(--bg);
+      padding: 18px 20px;
+    }
+
+    .pr-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pr-number {
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-faint);
+      flex-shrink: 0;
+    }
+
+    .pr-number a {
+      color: var(--fg-faint);
+    }
+    .pr-number a:hover { color: var(--accent); }
+
+    .pr-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--fg);
+      flex: 1;
+    }
+
+    .pr-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      color: var(--fg-faint);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .pr-tag.algo   { border-color: #93b8e0; color: #2a4d8f; background: #e8eef8; }
+    .pr-tag.infra  { border-color: #9ecfb4; color: #1f6840; background: #e8f5ed; }
+    .pr-tag.api    { border-color: #c9b8e0; color: #4a2a8f; background: #f0eef8; }
+    .pr-tag.fix    { border-color: #e0c8b0; color: #7a4a1a; background: #f8f0e8; }
+    .pr-tag.docs   { border-color: #d4d3cb; color: var(--fg-faint); background: var(--bg); }
+
+    .pr-body {
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--fg-muted);
+      line-height: 1.7;
+    }
+
+    .pr-body code {
+      font-family: var(--mono);
+      font-size: 0.82em;
+      background: #eceae3;
+      padding: 1px 5px;
+      color: var(--fg);
+    }
+
+    .pr-body em { font-style: italic; }
+    .pr-body strong { font-weight: 400; color: var(--fg); }
+
+    /* ── Closing note ── */
+    .closing {
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--fg-muted);
+      line-height: 1.75;
+      padding: 20px 0 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .closing strong { font-weight: 400; color: var(--fg); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { font-size: 0.78rem; color: var(--fg-muted); letter-spacing: 0.03em; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-copy { font-size: 0.73rem; color: var(--fg-faint); }
+
+    @media (max-width: 600px) {
+      .pr-header { flex-direction: column; gap: 4px; }
+      .summary-table td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+<div class="site">
+
+  <header>
+    <a class="back" href="index.html">Carlos Iguaran</a>
+    <h1 class="page-title">BlackJAX contributions</h1>
+    <p class="page-sub">SMC subsystem — v0.8.3 through v1.3 · 2022–2025</p>
+  </header>
+
+  <main>
+
+    <!-- Background -->
+    <section aria-labelledby="bg-label">
+      <p class="section-label" id="bg-label">Background</p>
+      <div class="prose">
+        <p>
+          <strong>BlackJAX</strong> is an open-source Python library for Bayesian inference built on
+          <a href="https://github.com/google/jax" target="_blank" rel="noopener">JAX</a>.
+          In Bayesian statistics you want to compute a <em>posterior distribution</em> — your updated belief
+          about unknown quantities after observing data. For real problems this is almost never available
+          in closed form, so you approximate it by drawing random samples.
+          BlackJAX provides the algorithms that do that sampling: you hand it a log-probability function
+          and get samples back. Because it runs on JAX, the algorithms compile to XLA and run on GPU/TPU,
+          are composable, and support automatic differentiation.
+        </p>
+        <p>
+          My contributions are concentrated in the <strong>Sequential Monte Carlo (SMC)</strong> subsystem.
+          Unlike most samplers that work directly on the final target distribution, SMC builds a
+          <em>sequence</em> of intermediate distributions bridging from something easy to sample
+          (the prior) toward the posterior, evolving a population of weighted particles at each step.
+          Think of it as slowly turning up the heat on a distribution until it reaches your target.
+          This makes SMC especially effective for multimodal posteriors, model comparison (it naturally
+          computes the marginal likelihood), and sequential data settings.
+        </p>
+        <p>
+          I've developed and maintained this subsystem from its early form into a flexible,
+          production-ready module — covering algorithm implementation, adaptive infrastructure,
+          API design, and correctness.
+        </p>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section aria-labelledby="summary-label">
+      <p class="section-label" id="summary-label">Summary</p>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Theme</th>
+            <th>What I built</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Algorithm implementation</td>
+            <td>IRMH, Waste-Free SMC, Partial posteriors SMC</td>
+          </tr>
+          <tr>
+            <td>Adaptive infrastructure</td>
+            <td>Inner kernel tuning, pretuning, joint tuning</td>
+          </tr>
+          <tr>
+            <td>API design</td>
+            <td>Algorithm class removal, RMH/RW separation, per-particle kernel parameters, tempering decoupling</td>
+          </tr>
+          <tr>
+            <td>Correctness</td>
+            <td>IRMH asymmetry fix, SMC-MCMC integration tests, ESS multivariate tests</td>
+          </tr>
+          <tr>
+            <td>Documentation</td>
+            <td>SMC particle representation, TemperedSMC example, IRMH proposal docs</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Contributions by release -->
+    <section aria-labelledby="prs-label">
+      <p class="section-label" id="prs-label">Contributions by release</p>
+
+      <!-- v0.8.3 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v0.8.3</span>
+          <span class="release-year">2022 · first contributions</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/244" target="_blank" rel="noopener">#244</a></span>
+              <span class="pr-title">SMC ESS tests: multivariate and multivariable posteriors</span>
+              <span class="pr-tag fix">correctness</span>
+            </div>
+            <p class="pr-body">
+              ESS (<em>Effective Sample Size</em>) measures how well a set of weighted particles represents the target
+              distribution — if it drops too low the population has collapsed and the approximation fails.
+              This PR added tests verifying the ESS calculation was correct for posteriors with multiple parameters
+              (multivariate) and multiple variables (multivariable), two cases that had not been systematically
+              covered before.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/246" target="_blank" rel="noopener">#246</a></span>
+              <span class="pr-title">Independent Random-walk Metropolis-Hastings (IRMH)</span>
+              <span class="pr-tag algo">algorithm</span>
+            </div>
+            <p class="pr-body">
+              IRMH is a Metropolis-Hastings variant where proposals are drawn from a fixed distribution
+              rather than making small local moves. As a mutation kernel inside SMC it efficiently
+              diversifies particles after resampling when you have a good global proposal.
+              This PR implemented IRMH as a first-class algorithm in BlackJAX.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.0.0 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v1.0.0</span>
+          <span class="release-year">2023</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/474" target="_blank" rel="noopener">#474</a></span>
+              <span class="pr-title">Fix TemperedSMC example</span>
+              <span class="pr-tag docs">docs</span>
+            </div>
+            <p class="pr-body">
+              Tempered SMC defines its sequence of distributions via a tempering parameter λ that scales
+              the likelihood: p(θ) · p(data|θ)^λ, with λ going from 0 (prior only) to 1 (full posterior).
+              Fixed the worked example in the documentation so users could correctly reproduce the algorithm.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/483" target="_blank" rel="noopener">#483</a></span>
+              <span class="pr-title">Test folder structure</span>
+              <span class="pr-tag infra">infra</span>
+            </div>
+            <p class="pr-body">
+              Reorganized the test suite into a proper folder hierarchy, making it easier for contributors
+              to find and add tests for specific algorithms.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/484" target="_blank" rel="noopener">#484</a></span>
+              <span class="pr-title">Expose RMH and Random Walk as two distinct algorithms</span>
+              <span class="pr-tag api">api</span>
+            </div>
+            <p class="pr-body">
+              Random-walk Metropolis-Hastings (RMH) and Random Walk were previously conflated in the codebase.
+              This PR separated them into two distinct, properly named algorithms and generalized Random Walk
+              to support non-Gaussian jump distributions — making the API clearer and more flexible for
+              users building custom samplers.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/522" target="_blank" rel="noopener">#522</a></span>
+              <span class="pr-title">SMC-MCMC integration test and fixes</span>
+              <span class="pr-tag fix">correctness</span>
+            </div>
+            <p class="pr-body">
+              MCMC kernels can be used as the mutation step inside SMC to diversify particles. This PR
+              added an integration test for this combination — verifying the two subsystems work correctly
+              together — and fixed bugs uncovered in the process.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.1.0 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v1.1.0</span>
+          <span class="release-year">2023</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/581" target="_blank" rel="noopener">#581</a></span>
+              <span class="pr-title">Fix IRMH proposal asymmetry</span>
+              <span class="pr-tag fix">correctness</span>
+            </div>
+            <p class="pr-body">
+              In Metropolis-Hastings the acceptance ratio depends on whether the proposal is symmetric
+              (q(x′|x) = q(x|x′)). IRMH proposals are not symmetric, and this was not being correctly
+              accounted for in the acceptance step. This PR fixed the acceptance ratio computation,
+              making IRMH statistically correct.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/582" target="_blank" rel="noopener">#582</a></span>
+              <span class="pr-title">Document how particles should be represented in SMC</span>
+              <span class="pr-tag docs">docs</span>
+            </div>
+            <p class="pr-body">
+              In JAX the representation of a population of samples matters — whether it's a stacked array,
+              a pytree, etc. This PR made the particle representation contract explicit so users could
+              correctly pass their models into the SMC interface.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/595" target="_blank" rel="noopener">#595</a></span>
+              <span class="pr-title">SMC inner kernel tuning</span>
+              <span class="pr-tag infra">adaptive infra</span>
+            </div>
+            <p class="pr-body">
+              When using an MCMC kernel as the mutation step inside SMC, the kernel's hyperparameters
+              (step size for HMC, proposal variance for RMH, etc.) need to be tuned at <em>each SMC step</em>
+              to work well with the current intermediate distribution — which changes every step.
+              This PR implemented <code>blackjax.smc.inner_kernel_tuning</code>, a module that automatically
+              adapts the mutation kernel's parameters during the SMC run. It became the most-referenced
+              part of the SMC subsystem in community discussions.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.2.0 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v1.2.0</span>
+          <span class="release-year">2024</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/649" target="_blank" rel="noopener">#649</a></span>
+              <span class="pr-title">Allow each mutation kernel to have different parameters</span>
+              <span class="pr-tag infra">adaptive infra</span>
+            </div>
+            <p class="pr-body">
+              Previously all particles in an SMC population had to use the same mutation kernel
+              hyperparameters. This PR lifted that restriction, allowing each particle to carry its own
+              kernel parameters — enabling more flexible adaptation strategies where different particles
+              can explore with different step sizes or proposal distributions.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/657" target="_blank" rel="noopener">#657</a></span>
+              <span class="pr-title">Removal of Algorithm classes</span>
+              <span class="pr-tag api">api · major</span>
+            </div>
+            <p class="pr-body">
+              The defining change for BlackJAX v1.2.0. The library had a layer of <code>Algorithm</code>
+              wrapper classes that was adding complexity without clarity. This PR removed them entirely,
+              simplifying the top-level API and making the library more composable. Flagged as the
+              major change in the release notes.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.2.4 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v1.2.4</span>
+          <span class="release-year">2024</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/721" target="_blank" rel="noopener">#721</a></span>
+              <span class="pr-title">Waste-Free SMC for adaptive and tempered variants</span>
+              <span class="pr-tag algo">algorithm</span>
+            </div>
+            <p class="pr-body">
+              Standard SMC discards low-weight particles during resampling.
+              <em>Waste-Free SMC</em> (Dau &amp; Chopin, 2022) instead applies more MCMC steps to
+              recycle low-weight particles rather than dropping them, improving sample efficiency.
+              This PR implemented Waste-Free SMC and made it available for both the adaptive tempered
+              and standard tempered SMC variants.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.2.5 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v1.2.5</span>
+          <span class="release-year">2025</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/729" target="_blank" rel="noopener">#729</a></span>
+              <span class="pr-title">Partial posteriors SMC + tempering decoupled from SMC construction</span>
+              <span class="pr-tag algo">algorithm · api</span>
+            </div>
+            <p class="pr-body">
+              Two contributions in one PR. First, <em>partial posteriors SMC</em>: the ability to run SMC
+              on subsets of the data, incrementally incorporating more data at each step — useful for
+              sequential Bayesian updating. Second, a significant architectural refactor decoupling the
+              tempering schedule (how λ evolves) from the SMC construction, making it easy to plug in
+              custom tempering strategies without touching the core SMC code.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/765" target="_blank" rel="noopener">#765</a></span>
+              <span class="pr-title">SMC pretuning</span>
+              <span class="pr-tag infra">adaptive infra</span>
+            </div>
+            <p class="pr-body">
+              Pretuning addresses a bootstrapping problem: before the SMC run starts, you need initial
+              kernel parameters, but you don't yet know what distribution you'll be targeting at the first
+              step. This PR implemented a short calibration phase before the main SMC loop to estimate
+              good starting hyperparameters.
+            </p>
+          </div>
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/772" target="_blank" rel="noopener">#772</a></span>
+              <span class="pr-title">Tests for SMC pretuning with adaptive tempering</span>
+              <span class="pr-tag fix">correctness</span>
+            </div>
+            <p class="pr-body">
+              Added a test suite for the combination of pretuning with adaptive tempering — where the
+              temperature schedule is chosen automatically based on the ESS at each step — verifying
+              the two features interact correctly.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.3 -->
+      <div class="release-group">
+        <div class="release-heading">
+          <span class="release-version">v1.3</span>
+          <span class="release-year">2025</span>
+        </div>
+        <div class="pr-list">
+          <div class="pr-card">
+            <div class="pr-header">
+              <span class="pr-number"><a href="https://github.com/blackjax-devs/blackjax/pull/776" target="_blank" rel="noopener">#776</a></span>
+              <span class="pr-title">SMC joint tuning and pretuning</span>
+              <span class="pr-tag infra">adaptive infra</span>
+            </div>
+            <p class="pr-body">
+              The culmination of the pretuning and inner kernel tuning work. This PR unified both into a
+              single coherent interface — <code>blackjax.smc.base.smc</code> with <code>inner_kernel_tuning</code>
+              and <code>pretuning</code> jointly configured — making the full adaptive SMC pipeline available
+              without requiring users to assemble the pieces manually.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p class="closing">
+        The thread running through all of it: making SMC in BlackJAX <strong>correct, adaptive, and composable</strong>
+        — so that researchers can use it for real problems without hand-tuning the internals.<br><br>
+        Paper: <a href="https://arxiv.org/abs/2402.10797" target="_blank" rel="noopener">BlackJAX: Composable Bayesian inference in JAX</a> (arXiv 2402.10797) ·
+        All PRs: <a href="https://github.com/users/ciguaran/projects/1" target="_blank" rel="noopener">github.com/users/ciguaran/projects/1</a>
+      </p>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <nav class="footer-links" aria-label="Contact and profiles">
+      <a href="mailto:ciguaran@dc.uba.ar">ciguaran@dc.uba.ar</a>
+      <a href="https://github.com/ciguaran" target="_blank" rel="noopener">github.com/ciguaran</a>
+      <a href="https://bayes.club/@charleemos" target="_blank" rel="noopener">@charleemos@bayes.club</a>
+      <a href="https://www.linkedin.com/in/ciguaran/" target="_blank" rel="noopener">linkedin</a>
+    </nav>
+    <span class="footer-copy">Buenos Aires, Argentina</span>
+  </footer>
+
+</div>
+</body>
+</html>
